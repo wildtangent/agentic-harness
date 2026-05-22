@@ -1,0 +1,16 @@
+- **Getting Started**
+  - [README](README.md)
+  - [Agent Instructions](AGENTS.md)
+- **Engineering Standards**
+  - [Overview](docs/engineering-standards/README.md)
+  - [Agent Guidelines](docs/engineering-standards/agent-guidelines.md)
+  - [Code Quality](docs/engineering-standards/code-quality.md)
+  - [Testing](docs/engineering-standards/testing.md)
+  - [Naming Conventions](docs/engineering-standards/naming-conventions.md)
+  - [Git Conventions](docs/engineering-standards/git-conventions.md)
+  - [Error Handling](docs/engineering-standards/error-handling.md)
+  - [Security](docs/engineering-standards/security.md)
+  - [Performance](docs/engineering-standards/performance.md)
+  - [Accessibility](docs/engineering-standards/accessibility.md)
+  - [Documentation](docs/engineering-standards/documentation.md)
+    `
