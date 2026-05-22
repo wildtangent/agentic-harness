@@ -1,11 +1,6 @@
 ---
-description: Engineering quality gates, testing requirements, and code standards
-alwaysApply: false
-include:
-  - "src/**/*"
-  - "lib/**/*"
-  - "test/**/*"
-  - "e2e/**/*"
+inclusion: fileMatch
+fileMatchPattern: ["src/**/*", "lib/**/*", "test/**/*", "e2e/**/*"]
 ---
 
 # Engineering Standards

@@ -1,6 +1,5 @@
 ---
-description: Git branching, commit conventions, and MR lifecycle
-alwaysApply: true
+inclusion: always
 ---
 
 # Git Workflow
