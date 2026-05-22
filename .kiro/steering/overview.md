@@ -1,6 +1,5 @@
 ---
-description: Project overview, issue tracking workflow, and documentation index
-alwaysApply: true
+inclusion: always
 ---
 
 # Project Overview

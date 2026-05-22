@@ -66,21 +66,38 @@ controlling when it is injected:
 
 ```yaml
 ---
-description: Brief description shown in Kiro UI
-alwaysApply: true          # inject on every request
-# OR
-include:                   # inject only when matching files are in context
-  - "src/**/*"
+inclusion: always          # inject on every request
+---
+```
+
+```yaml
+---
+inclusion: fileMatch                              # inject only when matching files are in context
+fileMatchPattern: ["src/**/*", "lib/**/*"]
+---
+```
+
+```yaml
+---
+inclusion: manual          # only when user references via #steering-file-name
+---
+```
+
+```yaml
+---
+inclusion: auto            # injected when the request matches the description
+name: api-design
+description: REST API design patterns. Use when creating or modifying API endpoints.
 ---
 ```
 
 ### Steering Files in This Project
 
-| File | `alwaysApply` | `include` globs | Purpose |
-| ---- | ------------- | --------------- | ------- |
-| `overview.md` | `true` | — | Project context, issue tracking, doc index |
-| `git-workflow.md` | `true` | — | Branching, commits, MR lifecycle |
-| `engineering.md` | `false` | `src/**/*`, `lib/**/*`, `test/**/*`, `e2e/**/*` | Quality gates, testing, standards |
+| File | `inclusion` | `fileMatchPattern` | Purpose |
+| ---- | ----------- | ------------------ | ------- |
+| `overview.md` | `always` | — | Project context, issue tracking, doc index |
+| `git-workflow.md` | `always` | — | Branching, commits, MR lifecycle |
+| `engineering.md` | `fileMatch` | `src/**/*`, `lib/**/*`, `test/**/*`, `e2e/**/*` | Quality gates, testing, standards |
 
 Each steering file is a brief summary with links to the detailed docs in
 `docs/engineering-standards/`. Do not duplicate content — edit the source docs and
