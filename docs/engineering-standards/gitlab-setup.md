@@ -2,6 +2,9 @@
 
 This document explains how to configure this steering repository for a new GitLab project.
 
+For the multi-tool harness architecture (Claude Code, Kiro, OpenCode) see
+[docs/multi-tool-setup.md](../multi-tool-setup.md).
+
 ## Prerequisites
 
 ### 1. Install the GitLab CLI (`glab`)
@@ -42,31 +45,37 @@ When adopting this repository for a new project, replace the following placehold
 
 | Placeholder | Replace with | Files affected |
 | --- | --- | --- |
-| `{{PROJECT_NAME}}` | Your project's name | `CLAUDE.md`, `AGENTS.md` |
+| `{{PROJECT_NAME}}` | Your project's name | `CLAUDE.md`, `AGENTS.md`, `.kiro/steering/overview.md` |
 | `{{PROJECT_DESCRIPTION}}` | One-paragraph project description | `AGENTS.md` |
-| `{{TECH_STACK}}` | Technology stack (e.g. `Node.js + TypeScript + PostgreSQL`) | `CLAUDE.md`, `AGENTS.md` |
-| `{{GITLAB_URL}}` | Your GitLab base URL (e.g. `https://gitlab.com` or `https://gitlab.mycompany.com`) | `AGENTS.md` |
-| `{{GITLAB_PROJECT_URL}}` | Full URL to your GitLab project board | `CLAUDE.md`, `AGENTS.md` |
+| `{{TECH_STACK}}` | Technology stack (e.g. `Node.js + TypeScript + PostgreSQL`) | `CLAUDE.md`, `AGENTS.md`, `.kiro/steering/overview.md` |
+| `{{GITLAB_URL}}` | Your GitLab base URL (e.g. `https://gitlab.com` or `https://gitlab.mycompany.com`) | `AGENTS.md`, `CLAUDE.md` |
+| `{{GITLAB_PROJECT_URL}}` | Full URL to your GitLab project board | `CLAUDE.md`, `AGENTS.md`, `.kiro/steering/overview.md` |
 | `{{GITLAB_ISSUES_URL}}` | Full URL to your project's issues list | `AGENTS.md` |
 | `{{WORKTREE_INIT_COMMAND}}` | Command to initialise a git worktree environment | `CLAUDE.md`, `AGENTS.md`, `start-issue` skill |
 | `{{WORKTREE_TEARDOWN_COMMAND}}` | Command to tear down a worktree environment | `CLAUDE.md` |
-| `{{DEV_COMMAND}}` | Command to start the dev server | `CLAUDE.md` |
-| `{{TEST_COMMAND}}` | Command to run unit tests | `CLAUDE.md` |
-| `{{E2E_COMMAND}}` | Command to run end-to-end tests | `CLAUDE.md` |
+| `{{DEV_COMMAND}}` | Command to start the dev server | `CLAUDE.md`, `AGENTS.md` |
+| `{{TEST_COMMAND}}` | Command to run unit tests | `CLAUDE.md`, `AGENTS.md` |
+| `{{E2E_COMMAND}}` | Command to run end-to-end tests | `CLAUDE.md`, `AGENTS.md` |
+| `{{BUILD_COMMAND}}` | Command to build / compile the project | `AGENTS.md` |
+| `{{LINT_COMMAND}}` | Command to run the linter | `AGENTS.md` |
+| `{{TYPECHECK_COMMAND}}` | Command to run the type checker | `AGENTS.md` |
 
 ### Example substitution (Node.js project on gitlab.com)
 
 ```
-{{PROJECT_NAME}}          → My SaaS App
-{{TECH_STACK}}            → Node.js + TypeScript + React + PostgreSQL
-{{GITLAB_URL}}            → https://gitlab.com
-{{GITLAB_PROJECT_URL}}    → https://gitlab.com/my-org/my-saas-app/-/boards
-{{GITLAB_ISSUES_URL}}     → https://gitlab.com/my-org/my-saas-app/-/issues
-{{WORKTREE_INIT_COMMAND}} → pnpm worktree:init
+{{PROJECT_NAME}}             → My SaaS App
+{{TECH_STACK}}               → Node.js + TypeScript + React + PostgreSQL
+{{GITLAB_URL}}               → https://gitlab.com
+{{GITLAB_PROJECT_URL}}       → https://gitlab.com/my-org/my-saas-app/-/boards
+{{GITLAB_ISSUES_URL}}        → https://gitlab.com/my-org/my-saas-app/-/issues
+{{WORKTREE_INIT_COMMAND}}    → pnpm worktree:init
 {{WORKTREE_TEARDOWN_COMMAND}} → pnpm worktree:teardown
-{{DEV_COMMAND}}           → pnpm dev
-{{TEST_COMMAND}}          → pnpm test
-{{E2E_COMMAND}}           → pnpm test:e2e
+{{DEV_COMMAND}}              → pnpm dev
+{{TEST_COMMAND}}             → pnpm test
+{{E2E_COMMAND}}              → pnpm test:e2e
+{{BUILD_COMMAND}}            → pnpm build
+{{LINT_COMMAND}}             → pnpm lint
+{{TYPECHECK_COMMAND}}        → pnpm typecheck
 ```
 
 ---

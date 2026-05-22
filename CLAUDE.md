@@ -1,78 +1,53 @@
 # Claude Code Instructions
 
-## Project Overview
+@AGENTS.md
 
-{{PROJECT_NAME}} — {{TECH_STACK}}
+---
 
-**For comprehensive agent instructions, see [AGENTS.md](./AGENTS.md)**
+## Sandbox Secrets (Fresh Machine Setup)
 
-## Issue Tracking
+Claude Code agents running in sandbox mode (worktrees, sub-agents) need credentials
+injected via `.claude/settings.local.json`. This file is gitignored — each contributor
+must create it locally.
 
-**Project Board:** [GitLab Project Board]({{GITLAB_PROJECT_URL}})
+### Required Secrets
 
-- Check the board for available tickets before starting work
-- Reference ticket numbers in branch names: `feat/#123-description`
-- Link MRs to tickets using `Closes #123` in MR description
+| Variable        | Purpose                                                          | Handled elsewhere?    |
+| --------------- | ---------------------------------------------------------------- | --------------------- |
+| `GITLAB_TOKEN`  | GitLab personal access token — enables `glab` CLI in sandbox     | No — must be set here |
 
-## Documentation
+Add any additional project-specific secrets required by your stack.
 
-| Document                                                     | Purpose                                   |
-| ------------------------------------------------------------ | ----------------------------------------- |
-| [AGENTS.md](./AGENTS.md)                                     | Full agent instructions and documentation index |
-| `docs/PRODUCT_REQUIREMENTS.md`                               | Product vision, features, user stories    |
-| `docs/ARCHITECTURE.md`                                       | Technical architecture and data model     |
-| `docs/USER_FLOWS.md`                                         | Detailed user journeys                    |
-| [docs/engineering-standards/](./docs/engineering-standards/) | Code quality, testing, **agent criteria** |
+### Setup
 
-## Before Committing
+1. Copy the template:
 
-**Mandatory checks — see [Agent Guidelines](./docs/engineering-standards/agent-guidelines.md) for full details**
+   ```bash
+   cp .claude/settings.local.json.example .claude/settings.local.json
+   ```
 
-1. Type check — zero type errors
-2. Lint — zero lint errors
-3. Tests — all pass
-4. Build — successful compilation
-5. Coverage — thresholds met (80%+ new code)
+2. Fill in your credentials:
+   - **`GITLAB_TOKEN`**: Generate at `{{GITLAB_URL}}/-/user_settings/personal_access_tokens` — needs `api` and `read_repository` scopes
 
-## Git Rules
+Once `settings.local.json` is in place, all agent subprocesses will automatically
+receive these credentials without manual `export` commands.
 
-**See [Git Conventions](./docs/engineering-standards/git-conventions.md) for full details**
-
-**Branching (Gitflow):** `<type>/<ticket>-<description>` (e.g., `feat/#123-user-auth`)
-
-**Commits ([Conventional Commits](https://www.conventionalcommits.org/)):** `<type>[scope]: <description>`
-
-| Rule                    | Detail                                                      |
-| ----------------------- | ----------------------------------------------------------- |
-| Rebase over merge       | Always rebase feature branches; no merge commits            |
-| Squash before merge     | Squash all commits into one; include all ticket refs        |
-| Never `--no-verify`     | Fix hook failures, don't bypass                             |
-| Never `--force`         | Use `--force-with-lease` after rebasing (with verification) |
-| Never force push `main` | Protected branch; always use MR                             |
-| Never commit secrets    | Use environment variables                                   |
-
-When hooks fail: fix the issue, don't bypass; if stuck, ask the user.
-
-## Post-Feature / MR Lifecycle
-
-**Once a feature is agreed to be pushed, agents MUST execute the following sequence autonomously — no further user prompting is required.**
-
-**See [Git Conventions — Post-Feature MR Lifecycle](./docs/engineering-standards/git-conventions.md#post-feature-mr-lifecycle) for full details and `glab` CLI commands.**
-
-| Step          | Action                                                                                       |
-| ------------- | -------------------------------------------------------------------------------------------- |
-| 1. Create MR  | Squash commits, write conventional commit message, open MR with body containing `Closes #N` |
-| 2. Watch CI   | Automatically poll CI with `glab ci status --watch` — do not wait for the user              |
-| 3a. CI passes | Merge immediately with `glab mr merge --squash --remove-source-branch`; confirm to user     |
-| 3b. CI fails  | Fetch logs, diagnose, propose fix, apply and push, then return to step 2                    |
-
-Escalate to the user only if a CI failure cannot be diagnosed or fixed after one attempt.
+---
 
 ## Worktrees (Parallel Agent Sessions)
 
 When Claude Code places you in a git worktree (via `EnterWorktree`), **run the
 init script before doing anything else**. Each worktree gets its own isolated
 environment so multiple agents can work in parallel without conflicts.
+
+**Spawning parallel sub-agents?** Pass `isolation: "worktree"` to the `Agent`
+tool — Claude Code will automatically create an isolated git worktree for that
+sub-agent. The sub-agent must still run `{{WORKTREE_INIT_COMMAND}}` as its first step.
+
+```
+// Interactive session  →  EnterWorktree tool, then {{WORKTREE_INIT_COMMAND}}
+// Sub-agent            →  Agent({ isolation: "worktree" }), then {{WORKTREE_INIT_COMMAND}}
+```
 
 ### Setup — once per worktree
 
@@ -85,11 +60,11 @@ resources (database, env file, etc.).
 
 After init, all commands work normally:
 
-| Command                    | Notes                                               |
-| -------------------------- | --------------------------------------------------- |
-| `{{DEV_COMMAND}}`          | Starts the dev server on the allocated port         |
-| `{{TEST_COMMAND}}`         | Unit tests                                          |
-| `{{E2E_COMMAND}}`          | Uses the allocated port and environment automatically |
+| Command                    | Notes                                                   |
+| -------------------------- | ------------------------------------------------------- |
+| `{{DEV_COMMAND}}`          | Starts the dev server on the allocated port             |
+| `{{TEST_COMMAND}}`         | Unit tests                                              |
+| `{{E2E_COMMAND}}`          | Uses the allocated port and environment automatically   |
 
 ### Teardown — before the worktree is removed
 
@@ -103,3 +78,16 @@ Run this before the session exits to clean up any isolated resources.
 
 - **Never** run the init or teardown commands in the main checkout
 - Shared services should be started from the **main checkout** only
+
+---
+
+## Skills
+
+Custom skills extend agent capabilities for specific workflows. Skills live in
+`.agents/skills/` and are invoked via `/skill-name` in Claude Code chat.
+
+| Skill           | Purpose                                    |
+| --------------- | ------------------------------------------ |
+| `create-issue`  | Scaffold and file a new GitLab issue       |
+| `start-issue`   | Pick up a ticket and begin implementation  |
+| `next-issues`   | List and triage the next candidate tickets |

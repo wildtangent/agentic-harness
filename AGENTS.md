@@ -103,43 +103,17 @@ If you identify work that needs to be done:
 > **Working in a worktree?** Run `{{WORKTREE_INIT_COMMAND}}` immediately after entering
 > the worktree. See the [Worktrees section in CLAUDE.md](./CLAUDE.md#worktrees-parallel-agent-sessions)
 > for full instructions and teardown steps.
->
-> **Spawning parallel sub-agents?** Pass `isolation: "worktree"` to the `Agent`
-> tool — Claude Code will automatically create an isolated git worktree for that
-> sub-agent. The sub-agent must still run `{{WORKTREE_INIT_COMMAND}}` as its first step.
->
-> ```
-> // Interactive session  →  EnterWorktree tool, then {{WORKTREE_INIT_COMMAND}}
-> // Sub-agent            →  Agent({ isolation: "worktree" }), then {{WORKTREE_INIT_COMMAND}}
-> ```
 
-### Sandbox Secrets (Fresh Machine Setup)
+### Key Commands
 
-Claude Code agents running in sandbox mode (worktrees, sub-agents) need credentials
-injected via `.claude/settings.local.json`. This file is gitignored — each contributor
-must create it locally.
-
-#### Required Secrets
-
-| Variable        | Purpose                                                    | Handled elsewhere? |
-| --------------- | ---------------------------------------------------------- | ------------------ |
-| `GITLAB_TOKEN`  | GitLab personal access token — enables `glab` CLI in sandbox | No — must be set here |
-
-Add any additional project-specific secrets required by your stack.
-
-#### Setup
-
-1. Copy the template:
-
-   ```bash
-   cp .claude/settings.local.json.example .claude/settings.local.json
-   ```
-
-2. Fill in your credentials:
-   - **`GITLAB_TOKEN`**: Generate at `{{GITLAB_URL}}/-/user_settings/personal_access_tokens` — needs `api` and `read_repository` scopes
-
-Once `settings.local.json` is in place, all agent subprocesses will automatically
-receive these credentials without manual `export` commands.
+| Purpose | Command |
+| ------- | ------- |
+| Start dev server | `{{DEV_COMMAND}}` |
+| Run tests | `{{TEST_COMMAND}}` |
+| Run E2E tests | `{{E2E_COMMAND}}` |
+| Build | `{{BUILD_COMMAND}}` |
+| Lint | `{{LINT_COMMAND}}` |
+| Type check | `{{TYPECHECK_COMMAND}}` |
 
 ### Before Writing Code
 
