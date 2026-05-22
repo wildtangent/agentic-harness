@@ -20,7 +20,7 @@
 | Type | Scope | Tools | Location |
 |------|-------|-------|----------|
 | Unit | Single function/component | Vitest | `*.test.ts` alongside source |
-| Integration | Multiple modules, database | Vitest + Prisma | `*.integration.test.ts` |
+| Integration | Multiple modules, database | Vitest | `*.integration.test.ts` |
 | Component | React components | Vitest + Testing Library | `*.test.tsx` |
 | E2E | Full user flows | Playwright | `e2e/*.spec.ts` |
 
@@ -39,14 +39,13 @@ Coverage enforced via CI pipeline. New code should not decrease overall coverage
 **Unit Tests (required):**
 - Utility functions
 - Data transformations
-- CSV parsers
-- Validation logic
-- Business rules (categorisation, recurring detection)
+- Parsers and validators
+- Business rules
 
 **Integration Tests (required):**
-- Database operations (Prisma)
-- Server Actions
-- API integrations (GenAI)
+- Database operations
+- Server actions / route handlers
+- External API integrations
 
 **Component Tests (required for complex components):**
 - Interactive components (forms, modals)
@@ -54,31 +53,30 @@ Coverage enforced via CI pipeline. New code should not decrease overall coverage
 - Components with state
 
 **E2E Tests (required for critical paths):**
-- CSV import flow
-- Transaction categorisation
-- Family member setup
+- Primary user flows
 - Core navigation
+- Key create / read / update / delete operations
 
 ## Test File Naming
 
 ```
 src/
 ├── lib/
-│   ├── parsers/
-│   │   ├── starling.ts
-│   │   ├── starling.test.ts        # Unit tests
-│   │   └── starling.integration.test.ts  # Integration tests
+│   ├── services/
+│   │   ├── user-service.ts
+│   │   ├── user-service.test.ts        # Unit tests
+│   │   └── user-service.integration.test.ts  # Integration tests
 │   └── utils/
-│       ├── currency.ts
-│       └── currency.test.ts
+│       ├── date.ts
+│       └── date.test.ts
 ├── components/
-│   ├── transactions/
-│   │   ├── transaction-row.tsx
-│   │   └── transaction-row.test.tsx
+│   ├── users/
+│   │   ├── user-card.tsx
+│   │   └── user-card.test.tsx
 e2e/
-├── import.spec.ts
-├── transactions.spec.ts
-└── family.spec.ts
+├── auth.spec.ts
+├── users.spec.ts
+└── settings.spec.ts
 ```
 
 ## Async Assertions

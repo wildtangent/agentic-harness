@@ -5,11 +5,11 @@
 | Requirement | Implementation |
 |-------------|----------------|
 | **No secrets in code** | Use environment variables |
-| **Validate all inputs** | Zod schemas at API boundaries |
-| **Sanitise file uploads** | Validate CSV structure before processing |
-| **No SQL injection** | Prisma parameterises queries automatically |
-| **No XSS** | React escapes by default; avoid `dangerouslySetInnerHTML` |
-| **Dependency auditing** | Run `pnpm audit` in CI |
+| **Validate all inputs** | Schema validation at API boundaries |
+| **Sanitise file uploads** | Validate file type, size, and structure before processing |
+| **No SQL injection** | Use parameterised queries or an ORM |
+| **No XSS** | Escape user-supplied content; avoid raw HTML injection |
+| **Dependency auditing** | Run dependency audit in CI |
 
 ## Environment Variables
 
@@ -22,14 +22,14 @@
 
 ```typescript
 // Always validate at API boundaries
-const TransactionCreateSchema = z.object({
-  amount: z.number().finite(),
-  description: z.string().min(1).max(255),
-  date: z.coerce.date(),
+const CreateItemSchema = z.object({
+  name: z.string().min(1).max(255),
+  quantity: z.number().int().positive(),
+  publishedAt: z.coerce.date(),
 });
 
-export async function createTransaction(data: unknown) {
-  const parsed = TransactionCreateSchema.safeParse(data);
+export async function createItem(data: unknown) {
+  const parsed = CreateItemSchema.safeParse(data);
   if (!parsed.success) {
     return { error: parsed.error.flatten() };
   }
@@ -39,18 +39,21 @@ export async function createTransaction(data: unknown) {
 
 ## File Upload Security
 
-- Validate file type before processing
-- Validate CSV structure matches expected format
+- Validate file type (MIME type and extension) before processing
+- Validate file structure matches expected format
 - Limit file size
 - Sanitise filenames
-- Store uploads outside web root
+- Store uploads outside the web root
 
 ## Dependency Security
 
 ```bash
-# Run in CI pipeline
-pnpm audit
+# Run in CI pipeline — use your package manager's audit command
+# npm:  npm audit
+# yarn: yarn audit
+# pnpm: pnpm audit
 
 # Fix vulnerabilities
-pnpm audit --fix
+# npm:  npm audit fix
+# pnpm: pnpm audit --fix
 ```

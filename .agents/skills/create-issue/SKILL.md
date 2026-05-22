@@ -1,12 +1,12 @@
 ---
 name: create-issue
-description: Draft and create a well-structured GitHub issue. Takes a description from arguments or prompts the user, scans the codebase for context, asks clarifying questions, then creates the issue with correct labels and body.
+description: Draft and create a well-structured GitLab issue. Takes a description from arguments or prompts the user, scans the codebase for context, asks clarifying questions, then creates the issue with correct labels and body.
 argument-hint: "[brief description of the issue]"
 ---
 
 # Create Issue
 
-Draft and file a GitHub issue. Gather context from the user and the codebase before writing anything.
+Draft and file a GitLab issue. Gather context from the user and the codebase before writing anything.
 
 ## Steps
 
@@ -41,12 +41,11 @@ If the type is ambiguous, ask the user before continuing.
 
 Do a **lightweight scan** — enough to understand what already exists, not a full audit. Focus on:
 
-- The area of the codebase most relevant to the issue (e.g. if it's about transactions, look at `src/actions/transactions.ts`, the transactions page, and the Prisma schema)
-- The Prisma schema (`prisma/schema.prisma`) if the issue touches data models
-- Relevant existing server actions, components, or tests — skim file names and top-level exports rather than reading every line
+- The area of the codebase most relevant to the issue
+- Relevant existing services, components, or tests — skim file names and top-level exports rather than reading every line
 - Related issues or recent commits if the description references them
 
-Use `gh issue list --state all --search "<keyword>" --limit 5` to check for duplicates or related prior work.
+Use `glab issue list --state opened --search "<keyword>"` to check for duplicates or related prior work.
 
 Do **not** do a full codebase exploration. Read 3–6 files at most. The goal is enough context to write a useful, specific issue — not to plan the implementation.
 
@@ -54,7 +53,7 @@ Do **not** do a full codebase exploration. Read 3–6 files at most. The goal is
 
 If, after scanning, there are gaps that would make the issue ambiguous or hard to act on, ask the user targeted questions. Examples:
 
-- "Is this affecting all households or just one?"
+- "Is this affecting all users or a specific subset?"
 - "Should this be a new page or extend an existing one?"
 - "Do you have a preferred approach in mind, or is that open?"
 - "Are there related issues this depends on or blocks?"
@@ -143,7 +142,7 @@ Rules for a good issue body:
 - Be specific: name the files, functions, or components involved where known
 - Acceptance criteria must be checkboxes and must be observable/testable
 - Do not pad with unnecessary sections — omit a section if it adds nothing
-- Do not include implementation details that belong in a PR, not an issue
+- Do not include implementation details that belong in an MR, not an issue
 
 ### 6. Show the draft to the user
 
@@ -156,10 +155,10 @@ Incorporate any feedback. Once the user approves (or says "looks good", "yes", "
 ### 7. Create the issue
 
 ```bash
-gh issue create \
+glab issue create \
   --title "<title>" \
   --label "<label>" \
-  --body "$(cat <<'EOF'
+  --description "$(cat <<'EOF'
 <body>
 EOF
 )"
@@ -173,6 +172,6 @@ Report the issue URL and number to the user.
 
 Ask:
 
-> "Want me to start work on this now with `/start-feature <number>`?"
+> "Want me to start work on this now with `/start-issue <number>`?"
 
-If the user says yes, invoke the `start-feature` skill with the new issue number.
+If the user says yes, invoke the `start-issue` skill with the new issue number.

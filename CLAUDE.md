@@ -1,163 +1,93 @@
 # Claude Code Instructions
 
-## Project Overview
+@AGENTS.md
 
-Family spending analysis tool - TypeScript + Next.js 16 + React 19 + PostgreSQL (Prisma) + Vercel.
+---
 
-**For comprehensive agent instructions, see [AGENTS.md](./AGENTS.md)**
+## Sandbox Secrets (Fresh Machine Setup)
 
-## Issue Tracking
+Claude Code agents running in sandbox mode (worktrees, sub-agents) need credentials
+injected via `.claude/settings.local.json`. This file is gitignored — each contributor
+must create it locally.
 
-**Project Board:** [GitHub Project](https://github.com/users/wildtangent/projects/2)
+### Required Secrets
 
-- Check the board for available tickets before starting work
-- Reference ticket numbers in branch names: `feat/#123-description`
-- Link PRs to tickets using `Closes #123` in PR description
+| Variable        | Purpose                                                          | Handled elsewhere?    |
+| --------------- | ---------------------------------------------------------------- | --------------------- |
+| `GITLAB_TOKEN`  | GitLab personal access token — enables `glab` CLI in sandbox     | No — must be set here |
 
-## Documentation
+Add any additional project-specific secrets required by your stack.
 
-| Document                                                       | Purpose                                           |
-| -------------------------------------------------------------- | ------------------------------------------------- |
-| [AGENTS.md](./AGENTS.md)                                       | Full agent instructions and documentation index   |
-| [docs/PRODUCT_REQUIREMENTS.md](./docs/PRODUCT_REQUIREMENTS.md) | Product vision, features, user stories            |
-| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)                 | Technical architecture, data model, Prisma schema |
-| [docs/USER_FLOWS.md](./docs/USER_FLOWS.md)                     | Detailed user journeys                            |
-| [docs/engineering-standards/](./docs/engineering-standards/)   | Code quality, testing, **agent criteria**         |
-| [docs/formats/csv/](./docs/formats/csv/)                       | Bank CSV format specifications                    |
+### Setup
 
-## Commands
+1. Copy the template:
 
-```bash
-pnpm dev              # Development with hot reload
-pnpm build            # Compile TypeScript
-pnpm lint             # Biome linting
-pnpm format           # Biome formatting
-pnpm typecheck        # Type check only
-pnpm test             # Run tests
-pnpm test:watch       # Tests in watch mode
-pnpm test:coverage    # Tests with coverage report
-pnpm test:e2e         # Run Playwright E2E tests (self-contained: starts its own server)
-pnpm test:e2e:headed  # Run E2E tests in headed browser
-pnpm test:e2e:ui      # Open Playwright UI mode
-```
+   ```bash
+   cp .claude/settings.local.json.example .claude/settings.local.json
+   ```
 
-## Code Guidelines
+2. Fill in your credentials:
+   - **`GITLAB_TOKEN`**: Generate at `{{GITLAB_URL}}/-/user_settings/personal_access_tokens` — needs `api` and `read_repository` scopes
 
-- TypeScript strict mode - no `any`, explicit return types on exports
-- Named exports only (no default exports)
-- Prefer `const` over `let`
-- Handle errors explicitly, avoid swallowing exceptions
-- Test files: `*.test.ts` alongside source files
+Once `settings.local.json` is in place, all agent subprocesses will automatically
+receive these credentials without manual `export` commands.
 
-## Before Committing
-
-**Mandatory checks - see [Agent Guidelines](./docs/engineering-standards/agent-guidelines.md) for full details**
-
-1. `pnpm typecheck` - Zero type errors
-2. `pnpm lint` - Zero lint errors
-3. `pnpm test` - All tests pass
-4. `pnpm build` - Successful compilation
-5. `pnpm test:coverage` - Coverage thresholds met (80%+ new code)
-
-## Git Rules
-
-**See [Git Conventions](./docs/engineering-standards/git-conventions.md) for full details**
-
-**Branching (Gitflow):** `<type>/<ticket>-<description>` (e.g., `feat/#123-csv-import`)
-
-**Commits ([Conventional Commits](https://www.conventionalcommits.org/)):** `<type>[scope]: <description>`
-
-| Rule                    | Detail                                                      |
-| ----------------------- | ----------------------------------------------------------- |
-| Rebase over merge       | Always rebase feature branches; no merge commits            |
-| Squash before merge     | Squash all commits into one; include all ticket refs        |
-| Never `--no-verify`     | Fix hook failures, don't bypass                             |
-| Never `--force`         | Use `--force-with-lease` after rebasing (with verification) |
-| Never force push `main` | Protected branch; always use PR                             |
-| Never commit secrets    | Use environment variables                                   |
-
-When hooks fail: fix the issue, don't bypass; if stuck, ask the user.
-
-## Post-Feature / PR Lifecycle
-
-**Once a feature is agreed to be pushed, agents MUST execute the following sequence autonomously — no further user prompting is required.**
-
-**See [Git Conventions — Post-Feature PR Lifecycle](./docs/engineering-standards/git-conventions.md#post-feature-pr-lifecycle) for full details and `gh` CLI commands.**
-
-| Step          | Action                                                                                      |
-| ------------- | ------------------------------------------------------------------------------------------- |
-| 1. Create PR  | Squash commits, write conventional commit message, open PR with body containing `Closes #N` |
-| 2. Watch CI   | Automatically poll CI with `gh pr checks --watch` — do not wait for the user                |
-| 3a. CI passes | Merge immediately with `gh pr merge --squash --delete-branch`; confirm to user              |
-| 3b. CI fails  | Fetch logs, diagnose, propose fix, apply and push, then return to step 2                    |
-
-Escalate to the user only if a CI failure cannot be diagnosed or fixed after one attempt.
-
-## Key Directories
-
-```
-src/
-├── app/                  # Next.js App Router pages
-├── components/           # React components
-├── lib/                  # Utilities, parsers, business logic
-├── actions/              # Server Actions
-prisma/
-├── schema.prisma         # Database schema
-docs/                     # All documentation
-```
-
-## Testing
-
-- Test files use `*.test.ts` suffix alongside source files
-- Vitest with globals (`describe`, `it`, `expect`)
-- See [Testing Standards](./docs/engineering-standards/testing.md) for coverage requirements
-
-## E2E Tests
-
-**Every feature that adds or changes a user-facing flow MUST include Playwright E2E tests.**
-
-- E2E tests live in `e2e/*.spec.ts`
-- Use `pnpm test:e2e` to run (dev server must be running on `:3000`)
-- Each spec file maps to a feature area (e.g. `family.spec.ts`, `transactions.spec.ts`)
-- Cover the critical path: create, read, update, delete where applicable
-- Use `getByRole`, `getByLabel`, `getByTestId` — avoid brittle CSS selectors
-- Scope post-action assertions to the relevant element, not loose `getByText`, to avoid strict-mode violations from dialog remnants or duplicate text
-- `CardTitle` renders as a `div`, not a heading — use `getByText()` not `getByRole("heading")` for form titles
-- The CI `e2e` job seeds a fresh database; tests that require seeded data (e.g. system categories) will always run correctly in CI
+---
 
 ## Worktrees (Parallel Agent Sessions)
 
 When Claude Code places you in a git worktree (via `EnterWorktree`), **run the
 init script before doing anything else**. Each worktree gets its own isolated
-port and database so multiple agents can work in parallel without conflicts.
+environment so multiple agents can work in parallel without conflicts.
+
+**Spawning parallel sub-agents?** Pass `isolation: "worktree"` to the `Agent`
+tool — Claude Code will automatically create an isolated git worktree for that
+sub-agent. The sub-agent must still run `{{WORKTREE_INIT_COMMAND}}` as its first step.
+
+```
+// Interactive session  →  EnterWorktree tool, then {{WORKTREE_INIT_COMMAND}}
+// Sub-agent            →  Agent({ isolation: "worktree" }), then {{WORKTREE_INIT_COMMAND}}
+```
 
 ### Setup — once per worktree
 
 ```bash
-pnpm worktree:init
+{{WORKTREE_INIT_COMMAND}}
 ```
 
-This allocates a free port (3001+), creates an isolated PostgreSQL database, writes
-`.env`, installs dependencies, applies migrations, and seeds system categories.
+Configure `{{WORKTREE_INIT_COMMAND}}` to allocate an isolated port and any per-worktree
+resources (database, env file, etc.).
 
 After init, all commands work normally:
 
-| Command         | Notes                                     |
-| --------------- | ----------------------------------------- |
-| `pnpm dev`      | Starts on your allocated port             |
-| `pnpm test`     | Unit tests — no DB required               |
-| `pnpm test:e2e` | Uses your port and database automatically |
+| Command                    | Notes                                                   |
+| -------------------------- | ------------------------------------------------------- |
+| `{{DEV_COMMAND}}`          | Starts the dev server on the allocated port             |
+| `{{TEST_COMMAND}}`         | Unit tests                                              |
+| `{{E2E_COMMAND}}`          | Uses the allocated port and environment automatically   |
 
 ### Teardown — before the worktree is removed
 
 ```bash
-pnpm worktree:teardown
+{{WORKTREE_TEARDOWN_COMMAND}}
 ```
 
-Drops your isolated database. Run this before the session exits.
+Run this before the session exits to clean up any isolated resources.
 
 ### Rules
 
-- **Never** run `worktree:init` or `worktree:teardown` in the main checkout
-- Docker (`family-spending-db` container) is **shared** — start it with `pnpm db:up` from the **main checkout** if it is not running
-- `pnpm db:up` / `pnpm db:down` in a worktree manage the shared container, not a worktree-specific one
+- **Never** run the init or teardown commands in the main checkout
+- Shared services should be started from the **main checkout** only
+
+---
+
+## Skills
+
+Custom skills extend agent capabilities for specific workflows. Skills live in
+`.agents/skills/` and are invoked via `/skill-name` in Claude Code chat.
+
+| Skill           | Purpose                                    |
+| --------------- | ------------------------------------------ |
+| `create-issue`  | Scaffold and file a new GitLab issue       |
+| `start-issue`   | Pick up a ticket and begin implementation  |
+| `next-issues`   | List and triage the next candidate tickets |

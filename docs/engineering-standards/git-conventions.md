@@ -32,22 +32,22 @@ main                    # Production-ready code, protected
 |-----------|----------|--------|---------|
 | Type | Yes | Lowercase, from allowed list | `feat`, `fix`, `hotfix` |
 | Ticket reference | Preferred | Ticket ID or issue number | `#123`, `PROJ-456` |
-| Description | Yes | Kebab-case, concise | `csv-import`, `auth-flow` |
+| Description | Yes | Kebab-case, concise | `user-auth`, `search-filter` |
 
 **With ticket reference (preferred):**
 ```
-feat/#123-csv-import
-fix/PROJ-456-duplicate-detection
+feat/#123-user-auth
+fix/PROJ-456-login-bug
 hotfix/#789-critical-auth-bug
 chore/#101-update-dependencies
 ```
 
 **Without ticket (when no ticket exists):**
 ```
-feat/csv-import-starling
-fix/handle-empty-csv
+feat/user-profile-export
+fix/handle-null-response
 docs/api-documentation
-refactor/categorisation-pipeline
+refactor/search-pipeline
 ```
 
 ### Branch Lifecycle
@@ -145,18 +145,17 @@ Migration guide: docs/migration/auth-v2.md
 Scope indicates the area of the codebase affected:
 
 ```
-feat(parser): add Starling CSV support
+feat(auth): add OAuth2 login
 fix(ui): correct date picker timezone
-refactor(db): optimise transaction queries
-test(api): add integration tests for upload
+refactor(db): optimise query performance
+test(api): add integration tests for search
 ```
 
-Common scopes for this project:
-- `parser` - CSV parsers
-- `ui` - React components
-- `api` - Server actions/routes
-- `db` - Database/Prisma
+Common scopes (adapt to your project):
 - `auth` - Authentication
+- `ui` - Components / views
+- `api` - Server routes / actions
+- `db` - Database
 - `config` - Configuration
 
 ### Description Rules
@@ -168,14 +167,14 @@ Common scopes for this project:
 
 ```
 # CORRECT
-feat: add CSV import for Lloyds Bank
-fix: handle negative amounts in parser
+feat: add OAuth login for enterprise accounts
+fix: handle null values in date parser
 refactor: extract validation into shared module
 
 # INCORRECT
-feat: Added CSV import for Lloyds Bank.    # Past tense, period
-fix: Handles negative amounts              # Third person
-refactor: Extract validation               # Capitalised
+feat: Added OAuth login for enterprise accounts.    # Past tense, period
+fix: Handles null values in date parser             # Third person
+refactor: Extract validation                        # Capitalised
 ```
 
 ### Body
@@ -206,27 +205,26 @@ feat: add transaction search functionality
 
 **Feature with scope and body:**
 ```
-feat(parser): add Starling CSV support
+feat(auth): add OAuth2 login
 
-Implements parsing for Starling Bank CSV exports including:
-- Column mapping for Starling's format
-- Category preservation from bank data
-- Balance tracking per transaction
+Implements OAuth2 login flow including:
+- Authorization code exchange
+- Token storage and refresh
+- Session persistence
 
 Closes #45
 ```
 
 **Bug fix with breaking change:**
 ```
-fix(api)!: change transaction amount to signed decimal
+fix(api)!: change pagination response schema
 
-Previously amounts were stored as absolute values with a separate
-'direction' field. Now using signed decimals for consistency.
+Previously the API returned a flat array. Now returns a paginated
+envelope with `items`, `total`, and `cursor` fields for consistency.
 
-BREAKING CHANGE: API responses now return signed amounts.
-Clients expecting positive amounts with direction field will break.
+BREAKING CHANGE: API consumers must update to the new response shape.
 
-Migration: Update clients to handle signed 'amount' field.
+Migration: Update clients to read `response.items` instead of the root array.
 
 Fixes #234
 ```
@@ -235,10 +233,9 @@ Fixes #234
 ```
 chore(deps): update dependencies to latest versions
 
-- Update Next.js to 16.1.0
-- Update Prisma to 6.2.0
-- Update TypeScript to 5.9.1
-- Update Biome to 2.4.0
+- Update framework to latest stable
+- Update linter and formatter
+- Update TypeScript
 
 Closes #301, #302
 Refs #298
@@ -246,15 +243,15 @@ Refs #298
 
 ---
 
-## Pull Request Requirements
+## Merge Request Requirements
 
-**Before opening PR:**
-- [ ] All CI checks pass locally (`pnpm typecheck && pnpm lint && pnpm test && pnpm build`)
+**Before opening MR:**
+- [ ] All CI checks pass locally (typecheck, lint, test, build)
 - [ ] Tests added for new functionality
 - [ ] No decrease in code coverage
 - [ ] Self-reviewed diff
 
-**PR description must include:**
+**MR description must include:**
 - Summary of changes
 - Link to related issue (`Closes #N`)
 - Test plan (how to verify)
@@ -267,7 +264,7 @@ Refs #298
 
 ---
 
-## Post-Feature PR Lifecycle
+## Post-Feature MR Lifecycle
 
 **Once a feature is agreed to be pushed, agents MUST execute this sequence autonomously — no further user prompting is required until completion or an unresolvable failure.**
 
@@ -280,13 +277,12 @@ Squash all feature branch commits into one, then push:
 git fetch origin
 git rebase origin/main
 
-# IMPORTANT: after rebasing, regenerate any generated files that may
-# have changed on main (new deps, schema changes, etc.)
-pnpm install
-pnpm db:generate   # regenerates Prisma client + Zod schemas
+# IMPORTANT: after rebasing, reinstall dependencies and regenerate any
+# generated files that may have changed on main
+# (e.g. lockfile changes, schema-generated types, etc.)
 
 # Verify the rebase result compiles cleanly before squashing
-pnpm typecheck
+# Run your project's typecheck command
 
 # Soft-reset to squash all commits since branching
 # NOTE: origin/main must be fetched (above) before this step —
@@ -295,7 +291,7 @@ git reset --soft origin/main
 
 # Write a single conventional commit with all ticket refs
 git commit -m "$(cat <<'EOF'
-feat(#scope): concise summary of the feature
+feat(scope): concise summary of the feature
 
 - Change 1
 - Change 2
@@ -305,29 +301,28 @@ Closes #123
 EOF
 )"
 
-# Verify everything passes
-pnpm typecheck && pnpm lint && pnpm test && pnpm build
+# Verify all quality checks pass (typecheck, lint, test, build)
 
 # Push (force-with-lease is safe here — we just rebased)
 git push --force-with-lease
 ```
 
-### Step 2 — Create PR
+### Step 2 — Create MR
 
-Create the PR using `gh pr create`. The body **must** include `Closes #N` so GitHub auto-closes the issue on merge:
+Create the MR using `glab mr create`. The body **must** include `Closes #N` so GitLab auto-closes the issue on merge:
 
 ```bash
-gh pr create \
+glab mr create \
   --title "feat(#123): concise summary" \
-  --body "$(cat <<'EOF'
+  --description "$(cat <<'EOF'
 ## Summary
 - Change 1
 - Change 2
 - Change 3
 
 ## Test plan
-- [ ] Unit tests pass (`pnpm test`)
-- [ ] Build succeeds (`pnpm build`)
+- [ ] Unit tests pass
+- [ ] Build succeeds
 - [ ] Manually verified <key behaviour>
 
 Closes #123
@@ -337,25 +332,25 @@ EOF
 
 ### Step 3 — Watch CI
 
-After the PR is created, **immediately** watch CI — do not wait for the user:
+After the MR is created, **immediately** watch CI — do not wait for the user:
 
 ```bash
-gh pr checks --watch
+glab ci status --watch
 ```
 
-This blocks until all checks complete and prints a final pass/fail summary.
+This polls until all pipeline jobs complete and prints a final pass/fail summary.
 
 ### Step 4a — CI Passes → Merge and Delete Branch
 
 ```bash
-gh pr merge --squash --delete-branch
+glab mr merge --squash --remove-source-branch
 ```
 
 - `--squash` keeps `main` history clean
-- `--delete-branch` removes the remote branch automatically
-- `Closes #N` in the PR body causes GitHub to close the linked issue
+- `--remove-source-branch` removes the source branch automatically
+- `Closes #N` in the MR description causes GitLab to close the linked issue
 
-Confirm to the user: PR merged, issue closed, branch deleted.
+Confirm to the user: MR merged, issue closed, branch deleted.
 
 ### Step 4b — CI Fails → Diagnose, Fix, Re-watch
 
@@ -364,11 +359,11 @@ If any check fails, **automatically**:
 1. **Fetch failure logs:**
 
 ```bash
-# List checks and find the failed run ID
-gh pr checks
+# List pipeline jobs for the MR and find the failed job
+glab ci status
 
-# View the failed run's logs
-gh run view <run-id> --log-failed
+# View the failed job's log output
+glab ci view
 ```
 
 2. **Diagnose** the root cause from the logs.
@@ -387,7 +382,7 @@ git push
 5. **Return to Step 3** — watch CI again:
 
 ```bash
-gh pr checks --watch
+glab ci status --watch
 ```
 
 Repeat until CI passes. **Escalate to the user only if** the failure cannot be diagnosed or a second fix attempt also fails.
@@ -443,7 +438,7 @@ git rebase --continue
 
 # 5. Verify the rebase result
 git log --oneline -10
-pnpm typecheck && pnpm lint && pnpm test
+# Run all quality checks (typecheck, lint, test)
 
 # 6. Force push to update remote branch (see below)
 git push --force-with-lease
@@ -485,7 +480,7 @@ git rebase -i HEAD~N
 # 5. Edit the combined commit message (see format below)
 
 # 6. Verify and force push
-pnpm typecheck && pnpm lint && pnpm test
+# Run all quality checks (typecheck, lint, test)
 git push --force-with-lease
 ```
 
@@ -509,7 +504,7 @@ git commit -m "feat: add user authentication
 Closes #123, #124"
 
 # 4. Verify and force push
-pnpm typecheck && pnpm lint && pnpm test
+# Run all quality checks (typecheck, lint, test)
 git push --force-with-lease
 ```
 
@@ -537,17 +532,16 @@ Refs #<related-issue>
 **Example squashed commit message:**
 
 ```
-feat: add CSV import for Starling Bank
+feat: add user profile export
 
-Implements full CSV import pipeline for Starling Bank statements:
+Implements full profile export pipeline:
 
-- Add CSV parser with column mapping for Starling format
-- Implement transaction normalisation (amounts, dates, categories)
-- Add duplicate detection based on date + description + amount
-- Create upload UI with drag-and-drop support
-- Add progress indicator for large files
-- Write unit tests for parser edge cases
-- Add integration tests for import flow
+- Add export service with configurable output formats
+- Implement data normalisation (dates, nulls, nested objects)
+- Add duplicate-safe file naming
+- Create download UI with progress indicator
+- Write unit tests for export edge cases
+- Add integration tests for export flow
 
 Closes #45, #46
 Refs #12
@@ -582,7 +576,7 @@ git log origin/main..HEAD --format="%B" | grep -oE "(Closes|Fixes|Refs|See|Relat
 **Before any force push, agents MUST:**
 
 1. **Verify branch** - Confirm NOT on `main` or `master`
-2. **Run all checks** - `pnpm typecheck && pnpm lint && pnpm test`
+2. **Run all checks** - typecheck, lint, test
 3. **Review changes** - `git log --oneline -10` to verify commit history
 4. **Use `--force-with-lease`** - Never use `--force`
 
@@ -590,7 +584,7 @@ git log origin/main..HEAD --format="%B" | grep -oE "(Closes|Fixes|Refs|See|Relat
 # CORRECT - Force push after rebase with verification
 git fetch origin
 git rebase origin/main
-pnpm typecheck && pnpm lint && pnpm test  # All must pass
+# Run all quality checks (typecheck, lint, test) — all must pass
 git log --oneline -5                            # Verify history
 git push --force-with-lease                     # Safe force push
 
@@ -619,8 +613,7 @@ When pre-commit hooks fail:
 git commit --no-verify -m "message"    # ❌ Bypasses hooks
 
 # CORRECT - Fix issues, don't bypass
-pnpm lint --fix                  # Fix lint errors
-pnpm format                         # Fix formatting
+# Run your project's lint --fix and format commands
 git commit -m "message"                # Let hooks run
 ```
 

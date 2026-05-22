@@ -1,0 +1,9 @@
+{
+  "instructions": [
+    "AGENTS.md",
+    "docs/engineering-standards/git-conventions.md",
+    "docs/engineering-standards/agent-guidelines.md",
+    "docs/engineering-standards/testing.md",
+    "docs/engineering-standards/naming-conventions.md"
+  ]
+}
