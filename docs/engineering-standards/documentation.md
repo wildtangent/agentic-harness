@@ -15,12 +15,12 @@ Comment the **why**, not the **what**:
 
 ```typescript
 // Bad - describes what code does (obvious)
-// Loop through transactions
-for (const txn of transactions) { ... }
+// Loop through users
+for (const user of users) { ... }
 
 // Good - explains why
-// Lloyds uses separate debit/credit columns, so we need to
-// determine direction by checking which column has a value
+// The external API returns IDs as strings even though our schema
+// treats them as numbers, so we coerce here rather than in the schema
 ```
 
 ## JSDoc
@@ -29,13 +29,13 @@ Required for exported utility functions:
 
 ```typescript
 /**
- * Parses a Lloyds Bank CSV export into normalised transactions.
+ * Normalises a date string from an external source into a JS Date.
  *
- * @param csvContent - Raw CSV string content
- * @returns Parsed transactions in internal format
- * @throws {ParseError} If CSV structure is invalid
+ * @param raw - Raw date string from the external API
+ * @returns Parsed Date object in UTC
+ * @throws {ParseError} If the string cannot be parsed as a valid date
  */
-export function parseLloydsCsv(csvContent: string): Transaction[] {
+export function parseExternalDate(raw: string): Date {
   // ...
 }
 ```
@@ -45,16 +45,16 @@ export function parseLloydsCsv(csvContent: string): Transaction[] {
 For significant decisions, create an ADR in `docs/adr/`:
 
 ```markdown
-# ADR-001: Use Prisma for Database Access
+# ADR-001: Use an ORM for Database Access
 
 ## Status
 Accepted
 
 ## Context
-We need a type-safe way to interact with PostgreSQL.
+We need a type-safe way to interact with the database.
 
 ## Decision
-Use Prisma ORM with generated types.
+Use an ORM with generated types.
 
 ## Consequences
 - Type-safe queries

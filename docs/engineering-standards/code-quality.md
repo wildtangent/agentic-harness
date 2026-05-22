@@ -43,15 +43,15 @@ import { readFile } from 'node:fs/promises';
 
 // 2. External packages
 import { z } from 'zod';
-import { prisma } from '../../generated/prisma/client';
+import { db } from '../../lib/db';
 
 // 3. Internal aliases (@/)
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/utils/currency';
+import { formatDate } from '@/lib/utils/date';
 
 // 4. Relative imports
-import { TransactionRow } from './transaction-row';
-import type { Transaction } from './types';
+import { UserCard } from './user-card';
+import type { User } from './types';
 
 // 5. Type-only imports last
 import type { ComponentProps } from 'react';
@@ -71,10 +71,10 @@ Enforced via Husky + lint-staged:
 
 ## CI Pipeline Checks
 
-All PRs must pass:
+All MRs must pass:
 
-1. `pnpm typecheck` - No type errors
-2. `pnpm lint` - No lint errors
-3. `pnpm test` - All tests pass
-4. `pnpm build` - Successful build
+1. Type check — zero type errors
+2. Lint — zero lint errors
+3. Test suite — all tests pass
+4. Build — successful compilation
 5. Coverage threshold met

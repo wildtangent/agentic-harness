@@ -8,11 +8,11 @@ Before marking any code task as complete, agents MUST verify:
 
 | Check | Command | Required Result |
 |-------|---------|-----------------|
-| Type check | `pnpm typecheck` | Zero errors |
-| Lint | `pnpm lint` | Zero errors |
-| Tests | `pnpm test` | All tests pass |
-| Build | `pnpm build` | Successful compilation |
-| Coverage | `pnpm test:coverage` | Meets thresholds |
+| Type check | _(project typecheck command)_ | Zero errors |
+| Lint | _(project lint command)_ | Zero errors |
+| Tests | _(project test command)_ | All tests pass |
+| Build | _(project build command)_ | Successful compilation |
+| Coverage | _(project coverage command)_ | Meets thresholds |
 
 **Agents must run ALL checks and report results.** Do not assume a check passes—execute and verify.
 
@@ -28,18 +28,18 @@ git push --force-with-lease
 
 **This is mandatory every time, even if the branch was recently created.** Main moves fast; opening a PR from a stale branch causes merge conflicts and CI failures that waste review cycles.
 
-If the rebase produces conflicts, resolve them, then run `pnpm typecheck && pnpm lint && pnpm test` before pushing.
+If the rebase produces conflicts, resolve them, then run all quality checks before pushing.
 
-## PR CI Checks
+## MR CI Checks
 
-After opening a PR, agents MUST watch CI checks to confirm they pass before declaring the task complete:
+After opening an MR, agents MUST watch CI checks to confirm they pass before declaring the task complete:
 
 ```bash
-gh pr checks <PR-number> --watch
+glab ci status --watch
 ```
 
-All checks must be green. If any check fails:
-1. Read the failure output — `gh run view <run-id> --log-failed`
+All jobs must be green. If any job fails:
+1. Read the failure output — `glab ci view`
 2. Fix the issue on the same branch
 3. Push the fix and re-watch until all checks pass
 
@@ -59,16 +59,16 @@ All checks must be green. If any check fails:
 ### Coverage Verification
 
 Agents must:
-1. Run `pnpm test:coverage` after writing tests
-2. Check coverage report for new/modified files specifically
-3. Report coverage percentages in task completion summary
+1. Run the project's coverage command after writing tests
+2. Check the coverage report for new/modified files specifically
+3. Report coverage percentages in the task completion summary
 4. If coverage is below threshold, write additional tests before delivery
 
 ```bash
 # Expected output format in agent response
 Coverage Report:
-- src/lib/parsers/starling.ts: 85% lines (✓ passes)
-- src/lib/utils/currency.ts: 92% lines (✓ passes)
+- src/lib/feature-a/service.ts: 85% lines (✓ passes)
+- src/lib/utils/helpers.ts: 92% lines (✓ passes)
 - Overall: 78% lines (✓ passes 70% minimum)
 ```
 
@@ -94,31 +94,6 @@ Agents must ensure tests:
 - **Include edge cases** - Empty inputs, null values, boundary conditions
 - **Have descriptive names** - Test name should explain what's being verified
 
-### Mocking External Dependencies in Tests
-
-**Prefer mocking over guarded method implementations.**
-
-When a function (e.g. `revalidatePath`, `redirect`, `headers`) throws outside the Next.js runtime, mock it in the test layer rather than adding `if (process.env.NODE_ENV !== 'test')` guards inside the production source file.
-
-`next/cache` is mocked globally in `src/test/setup.ts`:
-
-```typescript
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-```
-
-This means:
-- **Never** add `safeRevalidatePath` wrappers or `NODE_ENV` guards to source files
-- **Never** add a local `vi.mock("next/cache", ...)` in individual test files — the global mock covers it
-- If a test needs to assert that `revalidatePath` was called, import the function and wrap with `vi.mocked`:
-
-```typescript
-import { revalidatePath } from "next/cache";
-
-expect(vi.mocked(revalidatePath)).toHaveBeenCalledWith("/some-path");
-```
-
-If a new Next.js server utility causes test failures, add it to the global mock in `src/test/setup.ts` rather than patching the source file.
-
 ```typescript
 // Good test names
 it('returns empty array when CSV contains only headers')
@@ -142,15 +117,12 @@ For each new function/component, agents must test:
 
 ## Build Verification
 
-Agents must verify the full build pipeline:
+Agents must verify the full build pipeline. All of the following must succeed before delivery:
 
-```bash
-# All must succeed before delivery
-pnpm typecheck  # TypeScript compilation
-pnpm lint       # Biome linting
-pnpm build      # Production build
-pnpm test       # Test suite
-```
+- Type check — zero type errors
+- Lint — zero lint errors
+- Build — successful compilation
+- Test suite — all tests pass
 
 **Build-breaking changes are never acceptable.** If a build fails:
 1. Fix the issue immediately
@@ -179,20 +151,20 @@ When completing a task, agents should provide a structured summary:
 ## Delivery Summary
 
 ### Changes Made
-- Added `parseAmount()` function in `src/lib/utils/currency.ts`
-- Added unit tests in `src/lib/utils/currency.test.ts`
+- Added `calculateTotal()` function in `src/lib/utils/math.ts`
+- Added unit tests in `src/lib/utils/math.test.ts`
 
 ### Verification Results
 | Check | Status | Details |
 |-------|--------|---------|
-| TypeScript | ✓ Pass | No errors |
+| Type check | ✓ Pass | No errors |
 | Lint | ✓ Pass | No errors |
 | Tests | ✓ Pass | 24 passed, 0 failed |
 | Build | ✓ Pass | Compiled successfully |
 | Coverage | ✓ Pass | New code: 87% lines |
 
 ### Test Coverage
-- `src/lib/utils/currency.ts`: 87% lines, 82% branches
+- `src/lib/utils/math.ts`: 87% lines, 82% branches
 - Overall project: 76% lines (no decrease)
 
 ### Notes
@@ -219,23 +191,6 @@ Agents may deliver with failing checks ONLY if:
 | Known flaky test | Document and create follow-up issue |
 
 **Never hide or ignore failures.** Transparency is mandatory.
-
-## Toast Notifications
-
-All user-facing mutation feedback in page client components MUST use **Sonner** (`import { toast } from "sonner"`). Inline error banner `<div>` elements are not permitted.
-
-- Use `toast.error(message)` for failed mutations
-- Use `toast.success(message)` for successful mutations where confirmation is useful
-- The `<Toaster richColors closeButton />` is mounted once in the root layout — do not add additional `<Toaster>` instances
-- See [Error Handling](./error-handling.md) for the full pattern
-
-## Database Operations
-
-> ⛔ **Never use `psql` or raw SQL tools to apply migrations or schema changes.**
->
-> Always use the Prisma CLI: `pnpm db:migrate:dev` (development) or `pnpm db:migrate:deploy` (production/CI).
-> Bypassing Prisma breaks migration history tracking, leaves the Prisma Client and generated Zod schemas stale, and causes schema drift.
-> See the [Prisma Database Workflow in AGENTS.md](../../AGENTS.md#prisma-database-workflow) for the full workflow and command reference.
 
 ## Agent-Specific Guidelines
 

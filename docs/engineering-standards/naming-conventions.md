@@ -4,95 +4,66 @@
 
 | Type | Convention | Example |
 |------|------------|---------|
-| Folders | kebab-case | `csv-parsers/`, `family-members/` |
-| React components | kebab-case | `transaction-row.tsx` |
-| Utilities | kebab-case | `format-currency.ts` |
-| Types | kebab-case | `transaction.types.ts` |
+| Folders | kebab-case | `user-profile/`, `search-results/` |
+| React components | kebab-case | `user-card.tsx` |
+| Utilities | kebab-case | `format-date.ts` |
+| Types | kebab-case | `user.types.ts` |
 | Tests | `*.test.ts(x)` | `parser.test.ts` |
-| Constants | kebab-case | `category-defaults.ts` |
+| Constants | kebab-case | `status-codes.ts` |
 
 ## Code
 
 | Type | Convention | Example |
 |------|------------|---------|
-| Variables | camelCase | `transactionCount`, `isLoading` |
-| Constants | SCREAMING_SNAKE_CASE | `MAX_FILE_SIZE`, `DEFAULT_CATEGORY` |
-| Functions | camelCase | `parseStarlingCsv()`, `formatCurrency()` |
-| React components | PascalCase | `TransactionRow`, `CategoryBadge` |
-| Types/Interfaces | PascalCase | `Transaction`, `FamilyMember` |
-| Enums | PascalCase | `AccountType`, `UploadStatus` |
-| Enum values | SCREAMING_SNAKE_CASE | `AccountType.SHARED` |
+| Variables | camelCase | `userCount`, `isLoading` |
+| Constants | SCREAMING_SNAKE_CASE | `MAX_FILE_SIZE`, `DEFAULT_TIMEOUT` |
+| Functions | camelCase | `fetchUserById()`, `formatDate()` |
+| React components | PascalCase | `UserCard`, `SearchResult` |
+| Types/Interfaces | PascalCase | `User`, `SearchResult` |
+| Enums | PascalCase | `UserRole`, `RequestStatus` |
+| Enum values | SCREAMING_SNAKE_CASE | `UserRole.ADMIN` |
 | Type parameters | Single uppercase | `T`, `K`, `V` |
 
 ## React Components
 
 ```typescript
-// Component file: transaction-row.tsx
+// Component file: user-card.tsx
 
 // Named export (not default)
-export function TransactionRow({ transaction }: TransactionRowProps) {
+export function UserCard({ user }: UserCardProps) {
   // ...
 }
 
 // Props interface named [Component]Props
-interface TransactionRowProps {
-  transaction: Transaction;
+interface UserCardProps {
+  user: User;
   onSelect?: (id: string) => void;
 }
 
 // Hooks start with 'use'
-function useTransactionFilters() { ... }
+function useUserFilters() { ... }
 ```
 
-## Server Actions
+## Server Actions / Route Handlers
 
 ```typescript
-// File: actions/transactions.ts
-
 // Verb-noun naming
-export async function getTransactions(filters: TransactionFilters) { ... }
-export async function updateTransactionCategory(id: string, categoryId: string) { ... }
-export async function deleteTransaction(id: string) { ... }
+export async function getUsers(filters: UserFilters) { ... }
+export async function updateUserRole(id: string, role: UserRole) { ... }
+export async function deleteUser(id: string) { ... }
 
 // Prefix mutations with action verb
-export async function createFamilyMember(data: FamilyMemberInput) { ... }
-export async function attributeTransaction(id: string, memberIds: string[]) { ... }
+export async function createUser(data: UserInput) { ... }
+export async function assignResource(userId: string, resourceId: string) { ... }
 ```
 
-## Database (Prisma)
+## Database
 
 | Type | Convention | Example |
 |------|------------|---------|
-| Models | PascalCase (singular) | `Transaction`, `FamilyMember` |
-| Table names | snake_case (plural) | `transactions`, `family_members` |
-| Columns | snake_case | `created_at`, `account_id` |
-| Foreign keys | `{relation}_id` | `category_id`, `paid_by_id` |
-| Enums | PascalCase | `AccountType`, `Bank` |
-| Indexes | Implicit (Prisma handles) | — |
-
-```prisma
-model FamilyMember {
-  id        String   @id @default(uuid())
-  name      String   @db.VarChar(100)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("family_members")  // Table name
-}
-```
-
-## CSS / Tailwind
-
-- Use Tailwind utility classes as primary styling method
-- Extract repeated patterns to components, not CSS classes
-- shadcn/ui component variants via `cva` (class-variance-authority)
-
-```typescript
-// Good: Tailwind utilities
-<button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-
-// Good: Component abstraction for reuse
-<Button variant="primary" size="md">
-
-// Avoid: Custom CSS classes
-<button className="my-custom-button">  // No
-```
+| Models | PascalCase (singular) | `User`, `Resource` |
+| Table names | snake_case (plural) | `users`, `resources` |
+| Columns | snake_case | `created_at`, `user_id` |
+| Foreign keys | `{relation}_id` | `owner_id`, `parent_id` |
+| Enums | PascalCase | `UserRole`, `ResourceStatus` |
+| Indexes | Follow your ORM's conventions | — |

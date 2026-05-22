@@ -9,7 +9,7 @@ Technical requirements for code quality, testing, and conventions.
 | [Testing](./testing.md) | Test strategy, coverage requirements, test types |
 | [Code Quality](./code-quality.md) | TypeScript rules, Biome config, CI checks |
 | [Naming Conventions](./naming-conventions.md) | Files, code, components, database |
-| [Git Conventions](./git-conventions.md) | Branching, commits, PRs, rebase/squash |
+| [Git Conventions](./git-conventions.md) | Branching, commits, MRs, rebase/squash |
 | [Agent Guidelines](./agent-guidelines.md) | Acceptance criteria for AI agents |
 | [Error Handling](./error-handling.md) | Server actions, client components |
 | [Security](./security.md) | Security requirements |
@@ -21,12 +21,12 @@ Technical requirements for code quality, testing, and conventions.
 
 ### Before Committing
 
-```bash
-pnpm typecheck    # Zero type errors
-pnpm lint         # Zero lint errors
-pnpm test         # All tests pass
-pnpm build        # Successful build
-```
+Run your project's quality checks in this order:
+
+1. Type check — zero type errors
+2. Lint — zero lint errors
+3. Tests — all pass
+4. Build — successful compilation
 
 ### Branch Naming
 
@@ -34,7 +34,7 @@ pnpm build        # Successful build
 <type>/<ticket>-<description>
 ```
 
-Examples: `feat/#123-csv-import`, `fix/PROJ-456-auth-bug`
+Examples: `feat/#123-user-auth`, `fix/PROJ-456-login-bug`
 
 ### Commit Format ([Conventional Commits](https://www.conventionalcommits.org/))
 
